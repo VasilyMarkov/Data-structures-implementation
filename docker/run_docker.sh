@@ -1,0 +1,1 @@
+docker run -it --rm -v $HOME/usr/C++:/C++ my-cpp-env

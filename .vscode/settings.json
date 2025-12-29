@@ -1,0 +1,12 @@
+{
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "clangd.arguments": [
+        "-log=verbose",
+        "-pretty",
+        "compile-commands-dir=${workspaceFolder}",
+        "--header=insertion=iwyu",
+        "--query-driver=/usr/bin/clang",
+        "--all-scopes-completion",
+        "--completion-style=detailed"
+    ]
+}

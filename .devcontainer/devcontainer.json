@@ -1,0 +1,129 @@
+{
+    "name": "C++ 20 Development",
+    // Build configuration
+    "build": {
+        "dockerfile": "../docker/Dockerfile",
+        "context": "..",
+        "args": {
+            "USERNAME": "vscode"
+        }
+    },
+    // Use the vscode user
+    "remoteUser": "vscode",
+    // Container settings
+    "containerUser": "vscode",
+    "workspaceFolder": "/home/vscode/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/workspace,type=bind,consistency=cached",
+    // Additional mounts
+    "mounts": [
+        "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,readonly",
+        "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,readonly",
+        "source=clangd-cache,target=/home/vscode/.cache/clangd,type=volume"
+    ],
+    // VS Code settings for clangd
+    "settings": {
+        // Disable Microsoft C++ extension's IntelliSense
+        "C_Cpp.intelliSenseEngine": "disabled",
+        "C_Cpp.autocomplete": "disabled",
+        "C_Cpp.errorSquiggles": "disabled",
+        // clangd settings
+        "clangd.path": "/usr/bin/clangd-20",
+        "clangd.arguments": [
+            "--background-index",
+            "--compile-commands-dir=${workspaceFolder}/build",
+            "--completion-style=detailed",
+            "--header-insertion=iwyu",
+            "--header-insertion-decorators",
+            "--query-driver=/usr/bin/clang-20,/usr/bin/clang++-20",
+            "--clang-tidy",
+            "--all-scopes-completion",
+            "--cross-file-rename",
+            "--completion-parse=auto"
+        ],
+        // Editor settings optimized for C++
+        "editor.formatOnSave": true,
+        "editor.formatOnType": false,
+        "editor.suggest.snippetsPreventQuickSuggestions": false,
+        "editor.acceptSuggestionOnEnter": "on",
+        "editor.suggestOnTriggerCharacters": true,
+        "editor.wordBasedSuggestions": "off",
+        "editor.semanticHighlighting.enabled": true,
+        // Files to exclude
+        "files.exclude": {
+            "**/.git": true,
+            "**/.svn": true,
+            "**/.hg": true,
+            "**/CVS": true,
+            "**/.DS_Store": true,
+            "**/Thumbs.db": true,
+            "**/build": true,
+            "**/.*.sw?": true
+        },
+        // CMake settings
+        "cmake.configureOnOpen": true,
+        "cmake.buildDirectory": "${workspaceFolder}/build",
+        "cmake.generator": "Ninja",
+        "cmake.configureArgs": [
+            "-DCMAKE_C_COMPILER=clang-20",
+            "-DCMAKE_CXX_COMPILER=clang++-20",
+            "-DCMAKE_CXX_FLAGS=-stdlib=libc++",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+        ],
+        // Terminal settings
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+            "bash": {
+                "path": "/bin/bash"
+            }
+        }
+    },
+    // VS Code extensions
+    "extensions": [
+        // clangd extension (replaces C/C++ extension for IntelliSense)
+        "llvm-vs-code-extensions.vscode-clangd",
+        // C++ helpers
+        "ms-vscode.cpptools", // Keep for debugging and other features
+        "ms-vscode.cmake-tools",
+        "twxs.cmake",
+        // Code formatting and linting
+        "xaver.clang-format",
+        "notskm.clang-tidy",
+        // Productivity
+        "eamodio.gitlens",
+        "gruntfuggly.todo-tree",
+        "streetsidesoftware.code-spell-checker",
+        // Documentation
+        "cschlosser.doxdocgen",
+        // Optional: Better C++ syntax highlighting
+        "jeff-hykin.better-cpp-syntax"
+    ],
+    // Post-create commands
+    "postCreateCommand": [
+        "git config --global --add safe.directory /home/vscode/workspace",
+        "mkdir -p build",
+        "cd build && cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .."
+    ],
+    // Post-attach commands
+    "postAttachCommand": "echo 'clangd setup complete! Use Ctrl+Shift+P -> \"clangd: Restart Language Server\" if needed.'",
+    // Features
+    "features": {
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    },
+    // Customizations
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "editor.rulers": [
+                    80,
+                    120
+                ]
+            }
+        }
+    },
+    // Host requirements
+    "hostRequirements": {
+        "cpus": 4,
+        "memory": "8gb"
+    }
+}
