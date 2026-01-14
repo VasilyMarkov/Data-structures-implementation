@@ -12,137 +12,113 @@ public:
 	class list_iterator;
 	using iterator = list_iterator;
 
-	class Node {
-		friend list;
-		friend iterator;
-	public:
-		template<typename U>
-		Node(U&& val):val_(std::forward<U>(val)) {}
+    struct BaseNode {
+        BaseNode* next_ = nullptr;
+        BaseNode* prev_ = nullptr;
+    };
 
-		~Node() {
-			if(next_) {
-				delete next_;
-			}
-		}
-	private:
-		Node* next_ = nullptr;
-		Node* prev_ = nullptr;
-		T val_;
-	};
+    class Node: public BaseNode {
+        friend list;
+        friend iterator;
+    public:
+        template<typename U> 
+        Node(U&& val):value_(std::forward<U>(val)) {}
+
+        BaseNode* asBase() { return static_cast<BaseNode*>(this); }
+    private:
+        T value_;
+    };
 
 	// ============= Iterator ============= //
 	
-	class list_iterator: public iterator_facade<
-									list_iterator, 
-									T, 
-									std::bidirectional_iterator_tag
-								> {
-		using BaseType =  iterator_facade<
-							list_iterator, 
-							T, 
-							std::bidirectional_iterator_tag
-						  >;
-	public:
-		using value_type = typename BaseType::value_type;
-		using reference = typename BaseType::reference;
-		using pointer = typename BaseType::pointer;
-		using iterator_category = typename BaseType::iterator_category;
-		using difference_type = typename BaseType::difference_type;
-		
-		list_iterator(Node* node) noexcept :node_(node) {}
+    class list_iterator: public iterator_facade<list_iterator, T, std::bidirectional_iterator_tag> {
+        using BaseType = iterator_facade<list_iterator, T, std::bidirectional_iterator_tag>;
+        friend list;
+    public:
+        using value_type = typename BaseType::value_type;
+        using reference = typename BaseType::reference;
+        using pointer = typename BaseType::pointer;
+        using iterator_category = typename BaseType::iterator_category;
+        using difference_type = typename BaseType::difference_type;
 
-		reference dereference() noexcept { return node_->val_; }
+        explicit list_iterator(BaseNode* node) noexcept: base_node_(node) {}
+        
+        reference dereference() noexcept { return static_cast<Node*>(base_node_)->value_; }
+        void increment() noexcept { base_node_ = base_node_->next_; }
+        void decrement() noexcept { base_node_ = base_node_->prev_; }
 
-		void increment() noexcept { node_ = node_->next_; }
-		void decrement() noexcept { node_ = node_->prev_; }
-
-		bool equal(const list_iterator& other) const {
-			return node_ == other.node_;
-		}
-	private:
-		Node* node_ = nullptr;
-	};
+        bool equal(const list_iterator& rhs) const noexcept { return base_node_ == rhs.base_node_; }
+    private:
+        BaseNode* base_node_ = nullptr;
+    };
 	
 	// ==================================== //
 	
-	list() = default;
-	
-	list(size_t n) { //TODO write list unwind for strong exception garantee
-		size_t idx{};
-		try {
-			while(idx < n) {
-				push_back(T{}); //TODO check T by concept default_initializable
-				idx++;
-			}
-			size_ = n;
-		}
-		catch(const std::exception& e) {
-			// while(idx != 0) {
-
-			// 	--idx;
-			// }	
-		}
+	list() {
+		begin_.next_ = &begin_;
 	}
+
+    list(size_t n) {
+        size_t idx{};
+        //TODO write list unwind for strong exception garantee
+        while(idx < n) {
+            //TODO check T is default constructible
+            push_back(T{}); //TODO rewrite to emplace
+        }
+    }
 
 	//TODO write list unwind for strong exception garantee
-	list(std::initializer_list<T> list) {
-		for(const auto& el : list) {
-			push_back(el);
-		}
-		size_ = list.size();
-	}
+	// list(std::initializer_list<T> list) {
+		// for(const auto& el : list) {
+		// 	push_back(el);
+		// }
+		// size_ = list.size();
+	// }
 
 	~list() {
-		destroyNode(head_);
+        auto it = begin();
+        auto end_it = end();
+        while(it != end_it) {
+            auto* curr_node =  static_cast<Node*>(it.base_node_);
+            ++it;
+            delete curr_node;
+        }
 	}
+	
+    iterator begin() noexcept { return iterator(begin_.next_); }
+    iterator end() noexcept { return iterator(&begin_); }
 
-	void push_back(const T& val) {
-		if(!head_) {
-			head_ = constructNode(val);
-			tail_ = head_;
-		}
-		else {
-			auto* node = constructNode(val);
-			node->prev_ = tail_;
-			tail_->next_ = node;
-			tail_ = tail_->next_;
-		}
-		++size_;
-	}
+    iterator insert(iterator pos, const T& val) {
+        
+        Node* new_node = new Node(val);
+        
+        BaseNode* base = new_node->asBase();
 
-	void pop_back() noexcept {
-		if(!head_) return;
+        BaseNode* next = pos.base_node_->next_;
+        if(next != nullptr) {
+            next->prev_ = base;
+            base->next_ = next;
+        }
 
-		if(size_ == 1) {
-			destroyNode(head_);
-			return;
-		}
+        BaseNode* prev = pos.base_node_;
+        if(prev != nullptr) {
+            prev->next_ = base;
+            base->prev_ = prev;
+        }
+        ++size_;
 
-		auto* node = tail_;
-		tail_ = tail_->prev_;
-		tail_->next_ = nullptr;
-		destroyNode(node);
-		--size_;
-	}
-
-	iterator begin() noexcept { return iterator(head_); }
-	iterator end() noexcept { return iterator(tail_->next_); }
-
+        return iterator(base);
+    }
+	
 	size_t size() const noexcept { return size_; }
-
+	
+	void push_back(const T& val) {
+		insert(end(), val);
+	}
+	// void push_front(const T& val) {
+	// 	insert(begin(), val);
+	// }
 private:
-	template<typename U>
-	Node* constructNode(U&& val) {
-		return new Node(std::forward<U>(val));
-	}
-
-	void destroyNode(Node* node) {
-		if(node) {
-			delete node;
-		}
-	}
-
-	Node* head_ = nullptr;
-	Node* tail_ = nullptr;
+	BaseNode begin_;
 	size_t size_{};
 };

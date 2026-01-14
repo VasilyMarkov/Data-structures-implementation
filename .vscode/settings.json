@@ -1,12 +1,15 @@
 {
-    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.intelliSenseEngine": "default",
+    "clangd.path": "/usr/bin/clangd",
     "clangd.arguments": [
         "-log=verbose",
         "-pretty",
         "compile-commands-dir=${workspaceFolder}",
-        "--header=insertion=iwyu",
         "--query-driver=/usr/bin/clang",
         "--all-scopes-completion",
-        "--completion-style=detailed"
+        "--completion-style=detailed",
+        "--background-index",
+        "--clang-tidy",
+        "--header-insertion=never"
     ]
 }

@@ -26,11 +26,11 @@ public:
     Derived& operator++() { asDerived().increment(); return asDerived(); }
     Derived& operator--() { asDerived().decrement(); return asDerived(); }
 
-    Derived& operator+=(size_t n) { advance(n); return asDerived(); }
-    Derived& operator-=(size_t n) { advance(-n); return asDerived(); }
+    Derived& operator+=(difference_type n) { advance(n); return asDerived(); }
+    Derived& operator-=(difference_type n) { advance(-n); return asDerived(); }
 
-    constexpr void advance(size_t n) {
-        auto dist = difference_type(n);
+    constexpr void advance(difference_type n) {
+        auto dist = n;
         if constexpr(std::is_base_of_v<std::random_access_iterator_tag, iterator_category>) {
             *this += n;
         }
@@ -48,14 +48,15 @@ public:
         }
     }
 
-    friend bool operator==(const iterator_facade& lhs, const iterator_facade& rhs) {
+    friend bool operator==(const iterator_facade& lhs, const iterator_facade& rhs)
+    {
         return lhs.asDerived().equal(rhs.asDerived());
     }
-    
-    friend bool operator!=(const iterator_facade& lhs, const iterator_facade& rhs) {
+
+    friend bool operator!=(const iterator_facade& lhs, const iterator_facade& rhs)
+    {
         return !(lhs == rhs);
     }
-
     Derived& asDerived() { return *static_cast<Derived*>(this); }
     const Derived& asDerived() const { return *static_cast<const Derived*>(this); }
 };

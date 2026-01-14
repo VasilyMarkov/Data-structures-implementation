@@ -1,62 +1,73 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+
 ENV CC=/usr/bin/clang-20
 ENV CXX=/usr/bin/clang++-20
+ENV LD=/usr/bin/lld-20
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
-    gnupg \
-    software-properties-common \
+    ca-certificates \
     lsb-release \
-    && wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
-    && add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main" \
-    && apt-get update
+    software-properties-common \
+    gnupg 
+# && wget https://apt.llvm.org/llvm.sh \
+# && chmod +x llvm.sh \
+# && ./llvm.sh 20
 
-RUN apt-get install -y \
+RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
+    && add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main" \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+    # Install complete LLVM 20 toolchain
     clang-20 \
+    clangd-20 \
     clang-tidy-20 \
     clang-format-20 \
-    clangd-20 \
-    lldb-20 \
     lld-20 \
+    lldb-20 \
+    llvm-20 \
+    llvm-20-dev \
+    llvm-20-runtime \
     libc++-20-dev \
     libc++abi-20-dev \
+    libclang-20-dev \
+    libclang-rt-20-dev \
     libunwind-20-dev \
-    cmake \
+    libomp-20-dev 
+
+RUN apt-get install -y \
     ninja-build \
     pkg-config \
     git \
     curl \
-    wget \
     tar \
     xz-utils \
-    gdb \
-    valgrind \
-    libboost-all-dev \
     libgtest-dev \
     python3 \
     python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir conan
+# Install the latest CMake from the official Kitware repository
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    lsb-release \
+    && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - > /etc/apt/trusted.gpg.d/kitware.gpg \
+    && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends cmake \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir \
-    cpplint \
-    cppcheck \
-    bear \
-    compdb
-
-WORKDIR /tmp
-RUN git clone https://github.com/google/googletest.git \
+RUN git clone --depth 1 --branch v1.14.0 https://github.com/google/googletest.git \
     && cd googletest \
     && cmake -B build -G Ninja \
-    -DCMAKE_C_COMPILER=clang-20 \
-    -DCMAKE_CXX_COMPILER=clang++-20 \
+    -DCMAKE_C_COMPILER=${CC} \
+    -DCMAKE_CXX_COMPILER=${CXX} \
     -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
-    -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -fuse-ld=lld" \
-    -DCMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++ -fuse-ld=lld" \
+    -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi" \
+    -DCMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi" \
     -DBUILD_SHARED_LIBS=OFF \
     -DCMAKE_BUILD_TYPE=Release \
     -Dgtest_force_shared_crt=ON \
@@ -75,7 +86,7 @@ RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-20 100 \
     && update-alternatives --install /usr/bin/lldb lldb /usr/bin/lldb-20 100 \
     && update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-20 100
 
-RUN git config --global init.defaultBranch main \
+RUN git config --global init.defaultBranch master \
     && git config --global --add safe.directory '*'
 
 
