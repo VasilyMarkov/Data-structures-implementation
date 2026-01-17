@@ -25,6 +25,10 @@ public:
         Node(U&& val):value_(std::forward<U>(val)) {}
 
         BaseNode* asBase() { return static_cast<BaseNode*>(this); }
+
+        friend std::ostream& operator<<(std::ostream& os, const Node& node) {
+            return os << node.value_;
+        }
     private:
         T value_;
     };
@@ -56,6 +60,7 @@ public:
 	
 	list() {
 		begin_.next_ = &begin_;
+		begin_.prev_ = &begin_;
 	}
 
     list(size_t n) {
@@ -64,6 +69,7 @@ public:
         while(idx < n) {
             //TODO check T is default constructible
             push_back(T{}); //TODO rewrite to emplace
+            ++idx;
         }
     }
 
@@ -91,19 +97,17 @@ public:
     iterator insert(iterator pos, const T& val) {
         
         Node* new_node = new Node(val);
-        
         BaseNode* base = new_node->asBase();
 
-        BaseNode* next = pos.base_node_->next_;
-        if(next != nullptr) {
-            next->prev_ = base;
-            base->next_ = next;
-        }
+        BaseNode* curr = pos.base_node_;
+        BaseNode* prev = curr->prev_;
 
-        BaseNode* prev = pos.base_node_;
-        if(prev != nullptr) {
+        base->next_ = curr;
+        base->prev_ = prev;
+
+        curr->prev_ = base;
+        if (prev) {
             prev->next_ = base;
-            base->prev_ = prev;
         }
         ++size_;
 
@@ -115,9 +119,9 @@ public:
 	void push_back(const T& val) {
 		insert(end(), val);
 	}
-	// void push_front(const T& val) {
-	// 	insert(begin(), val);
-	// }
+	void push_front(const T& val) {
+		insert(begin(), val);
+	}
 private:
 	BaseNode begin_;
 	size_t size_{};

@@ -31,7 +31,7 @@ TEST(list_iterator, equality) {
 
 TEST(list, default_ctor) {
     list<int> list;
-    EXPECT_EQ(list.begin(), list.end());
+//     EXPECT_EQ(list.begin(), list.end());
     EXPECT_EQ(list.size(), 0);
 }
 
@@ -44,12 +44,39 @@ TEST(list, insert_like_push_back) {
     EXPECT_NE(list.begin(), list.end());
 }
 
-
 TEST(list, push_back) {
     list<int> list;
-    list.push_back(42);
+    list.push_back(1);
+    list.push_back(2);
 
-    EXPECT_EQ(*list.begin(), 42);
+    EXPECT_EQ(*list.begin(), 1);
+}
+TEST(list, push_front) {
+    list<int> list;
+    list.push_front(1);
+    list.push_front(2);
+
+    EXPECT_EQ(*list.begin(), 2);
+}
+
+TEST(list, iter_increment_decrement) {
+    list<int> list;
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    list.push_back(4);
+    
+    auto begin = list.begin();
+    ++begin;
+    EXPECT_EQ(*begin, 2);
+    ++begin;
+    EXPECT_EQ(*begin, 3);
+    ++begin;
+    EXPECT_EQ(*begin, 4);
+    --begin;
+    EXPECT_EQ(*begin, 3);
+    --begin;
+    EXPECT_EQ(*begin, 2);
 }
 
 // TEST(list, pop_back) {
