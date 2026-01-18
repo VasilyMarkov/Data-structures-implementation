@@ -67,28 +67,28 @@ public:
         T value_;
     };
 
-		list() {
+	list() {
 		begin_.next_ = &begin_;
 		begin_.prev_ = &begin_;
 	}
 
-    list(size_t n) {
+    list(size_t n): list() {
         size_t idx{};
         //TODO write list unwind for strong exception garantee
         while(idx < n) {
             //TODO check T is default constructible
-            push_back(T{}); //TODO rewrite to emplace
+            push_back({}); //TODO rewrite to emplace
             ++idx;
         }
     }
 
 	//TODO write list unwind for strong exception garantee
-	// list(std::initializer_list<T> list) {
-		// for(const auto& el : list) {
-		// 	push_back(el);
-		// }
-		// size_ = list.size();
-	// }
+	list(std::initializer_list<T> init_list): list() {
+		for(const auto& el : init_list) {
+			push_back(el);
+		}
+		size_ = init_list.size();
+	}
 
 	~list() {
         auto it = begin();
@@ -101,9 +101,14 @@ public:
 	}
 	
     iterator begin() noexcept { return iterator(begin_.next_); }
-    iterator end() noexcept { return iterator(&begin_); }
+    const_iterator begin() const noexcept { return cbegin(); }
+    const_iterator cbegin() const noexcept { return const_iterator(begin_.next_); }
 
-    iterator insert(iterator pos, const T& val) {
+    iterator end() noexcept { return iterator(&begin_); }
+    const_iterator end() const noexcept { return cend(); }
+    const_iterator cend() const noexcept { return iterator(&begin_); }
+
+    iterator insert(iterator pos, const T& val) { //insert before
         
         Node* new_node = new Node(val);
         BaseNode* base = new_node->asBase();
@@ -131,6 +136,14 @@ public:
 	void push_front(const T& val) {
 		insert(begin(), val);
 	}
+
+    friend std::ostream& operator<<(std::ostream& os, const list& list) {
+        for(const auto& el : list) {
+            os << el << ' ';
+        }
+        return os;
+    }
+
 private:
 	BaseNode begin_;
 	size_t size_{};

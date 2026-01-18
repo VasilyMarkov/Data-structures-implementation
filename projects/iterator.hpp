@@ -10,6 +10,7 @@
 #include <memory>
 #include <type_traits>
 #include <iostream>
+#include <iterator>
 
 template<
 	typename Derived,
@@ -32,27 +33,8 @@ public:
     Derived& operator++() { asDerived().increment(); return asDerived(); }
     Derived& operator--() { asDerived().decrement(); return asDerived(); }
 
-    Derived& operator+=(difference_type n) { advance(n); return asDerived(); }
-    Derived& operator-=(difference_type n) { advance(-n); return asDerived(); }
-
-    constexpr void advance(difference_type n) {
-        auto dist = n;
-        if constexpr(std::is_base_of_v<std::random_access_iterator_tag, iterator_category>) {
-            *this += n;
-        }
-        else {
-            while(dist > 0) {
-                ++(*this);
-                --dist;
-            }
-            if(std::is_base_of_v<std::bidirectional_iterator_tag, iterator_category>) {
-                while(dist < 0) {
-                    --(*this);
-                    ++dist;
-                }
-            }
-        }
-    }
+    Derived& operator+=(difference_type n) { std::advance(asDerived(), n); return asDerived(); }
+    Derived& operator-=(difference_type n) { std::advance(asDerived(), -n); return asDerived(); }
 
     friend bool operator==(const iterator_facade& lhs, const iterator_facade& rhs)
     {

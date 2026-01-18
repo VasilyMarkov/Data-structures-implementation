@@ -90,6 +90,21 @@ TEST(list, iter_increment_decrement) {
     EXPECT_EQ(*begin, 2);
 }
 
+TEST(list, iter_advance) {
+    list<int> list;
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    list.push_back(4);
+
+    EXPECT_EQ(*(list.begin() += 1), 2);
+    EXPECT_EQ(*(list.begin() += 2), 3);
+    EXPECT_EQ(*(list.begin() += 3), 4);
+    auto it = list.begin() += 3;
+    EXPECT_EQ(*(it -= 1), 3);
+    EXPECT_EQ(*(it -= 2), 1);
+}
+
 TEST(list, ostream_operator) {
     list<int> list;
     list.push_back(1);
@@ -110,7 +125,10 @@ TEST(list, n_ctor) {
     EXPECT_EQ(*list.begin(), 0);
 }
 
-
+TEST(list, ctor_init_list) {
+    list<int> list = {1,2,3,4};
+    EXPECT_EQ(*list.begin(), 1);
+}
 
 // TEST(list, pop_back) {
 //     list<int> list = {1,2,3,4};
@@ -125,10 +143,7 @@ TEST(list, n_ctor) {
 // }
 
 
-// TEST(list, ctor_init_list) {
-//     list<int> list = {1,2,3,4};
-//     EXPECT_EQ(*list.begin(), 1);
-// }
+
 
 // TEST(list, iter_add) {
 //     list<int> list = {1,2,3,4};
