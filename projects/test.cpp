@@ -2,52 +2,53 @@
 #include "list.hpp"
 
 struct ObjectWithExceptions {
-    ObjectWithExceptions(int val):val_(val) {
-        if(cnt > 3) {
+    ObjectWithExceptions() {
+        // std::cout << cnt << std::endl;
+        if(cnt > 2) {
             throw std::runtime_error("ObjectWithExceptions throw exception");
         }
+        ++cnt;
     };
     inline static size_t cnt = 0;
-    int val_;
 };
 
 TEST(list_iterator, ctor) {
-    list<int>::Node node(42);
-    list<int>::iterator it(node.asBase());
+    exp::list<int>::Node node(42);
+    exp::list<int>::iterator it(node.asBase());
     EXPECT_EQ(*it, 42);
 }
 
 TEST(list_iterator, equality) {
-    list<int>::Node node(42);
-    list<int>::iterator it(node.asBase());
-    list<int>::iterator it1(node.asBase());
+    exp::list<int>::Node node(42);
+    exp::list<int>::iterator it(node.asBase());
+    exp::list<int>::iterator it1(node.asBase());
     
     EXPECT_EQ(it, it1);
     
-    list<int>::Node node1(24);
-    list<int>::iterator it2(node1.asBase());
+    exp::list<int>::Node node1(24);
+    exp::list<int>::iterator it2(node1.asBase());
     EXPECT_NE(it, it2);
 }
 
 TEST(list_iterator, const_nonconst) {
-    EXPECT_FALSE(std::is_const_v<list<int>::iterator::value_type>);
-    EXPECT_TRUE(std::is_const_v<list<int>::const_iterator::value_type>);
+    EXPECT_FALSE(std::is_const_v<exp::list<int>::iterator::value_type>);
+    EXPECT_TRUE(std::is_const_v<exp::list<int>::const_iterator::value_type>);
 
-    EXPECT_FALSE(std::is_const_v<std::remove_reference_t<list<int>::iterator::reference>>);
-    EXPECT_TRUE(std::is_const_v<std::remove_reference_t<list<int>::const_iterator::reference>>);
+    EXPECT_FALSE(std::is_const_v<std::remove_reference_t<exp::list<int>::iterator::reference>>);
+    EXPECT_TRUE(std::is_const_v<std::remove_reference_t<exp::list<int>::const_iterator::reference>>);
 
-    EXPECT_FALSE(std::is_const_v<list<int>::iterator::pointer>);
-    EXPECT_TRUE(std::is_const_v<list<int>::const_iterator::pointer>);
+    EXPECT_FALSE(std::is_const_v<exp::list<int>::iterator::pointer>);
+    EXPECT_TRUE(std::is_const_v<exp::list<int>::const_iterator::pointer>);
 }
 
 TEST(list, default_ctor) {
-    list<int> list;
+    exp::list<int> list;
     EXPECT_EQ(list.begin(), list.end());
     EXPECT_EQ(list.size(), 0);
 }
 
 TEST(list, insert_like_push_back) {
-    list<int> list;
+    exp::list<int> list;
     list.insert(list.begin(), 42);
     
     EXPECT_EQ(*list.begin(), 42);
@@ -55,15 +56,16 @@ TEST(list, insert_like_push_back) {
     EXPECT_NE(list.begin(), list.end());
 }
 
+
 TEST(list, push_back) {
-    list<int> list;
+    exp::list<int> list;
     list.push_back(1);
     list.push_back(2);
 
     EXPECT_EQ(*list.begin(), 1);
 }
 TEST(list, push_front) {
-    list<int> list;
+    exp::list<int> list;
     list.push_front(1);
     list.push_front(2);
 
@@ -71,7 +73,7 @@ TEST(list, push_front) {
 }
 
 TEST(list, iter_increment_decrement) {
-    list<int> list;
+    exp::list<int> list;
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -91,7 +93,7 @@ TEST(list, iter_increment_decrement) {
 }
 
 TEST(list, iter_advance) {
-    list<int> list;
+    exp::list<int> list;
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -106,7 +108,7 @@ TEST(list, iter_advance) {
 }
 
 TEST(list, ostream_operator) {
-    list<int> list;
+    exp::list<int> list;
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -120,57 +122,103 @@ TEST(list, ostream_operator) {
 }
 
 TEST(list, n_ctor) {
-    list<int> list(3);
+    exp::list<int> list(3);
     EXPECT_EQ(list.size(), 3);
     EXPECT_EQ(*list.begin(), 0);
 }
 
 TEST(list, ctor_init_list) {
-    list<int> list = {1,2,3,4};
+    exp::list<int> list = {1,2,3,4};
     EXPECT_EQ(*list.begin(), 1);
 }
 
-// TEST(list, pop_back) {
-//     list<int> list = {1,2,3,4};
-//     list.pop_back();
+TEST(list, range_based_for) {
+    exp::list<int> list = {1,2,3,4};
+    EXPECT_EQ(list.size(), 4);
 
-//     EXPECT_EQ(list.size(), 3);
-//     for(auto el : list) {
-//         std::cout << el << std::endl;
-//     }
-//     auto it = list.end() -= 2;
-//     EXPECT_EQ(*it, 3);
-// }
+    std::vector<int> expected;
+    for(auto el : list) {
+        expected.push_back(el);
+    }
+    std::vector actual = {1,2,3,4};
+    EXPECT_EQ(expected, actual);
+}
 
+TEST(list, erase) {
+    exp::list<int> list = {1,2,3,4};
 
+    list.erase(list.begin());
+    EXPECT_EQ(*list.begin(), 2);
 
+    list.erase(list.begin());
+    EXPECT_EQ(*list.begin(), 3);
 
-// TEST(list, iter_add) {
-//     list<int> list = {1,2,3,4};
-//     EXPECT_EQ(list.size(), 4);
+    list.erase(list.begin());
+    EXPECT_EQ(*list.begin(), 4);
+    EXPECT_EQ(list.size(), 1);
+}
+
+TEST(list, pop_front) {
+    exp::list<int> list = {1,2,3,4};
+
+    list.pop_front();
+    EXPECT_EQ(*list.begin(), 2);
+
+    list.pop_front();
+    EXPECT_EQ(*list.begin(), 3);
+
+    list.pop_front();
+    EXPECT_EQ(*list.begin(), 4);
+    EXPECT_EQ(list.size(), 1);
+}
+
+TEST(list, pop_back) {
+    exp::list<int> list = {1,2,3,4};
+
+    list.pop_back();
+    EXPECT_EQ(*std::prev(list.end()), 3);
+
+    list.pop_back();
+    EXPECT_EQ(*std::prev(list.end()), 2);
+
+    list.pop_back();
+    EXPECT_EQ(*list.begin(), 1);
+    EXPECT_EQ(*std::prev(list.end()), 1);
+}
+
+TEST(list, equal) {
+    exp::list<int> list1 = {1,2,3,4};
+    exp::list<int> list2 = {1,2,3,4};
+    exp::list<int> list3 = {1,5,3,4};
+
+    EXPECT_TRUE(list1 == list2);
+    EXPECT_TRUE(list1 != list3);
+}
+
+TEST(list, strong_exception_garantee_push_back) {
+    exp::list<ObjectWithExceptions> list;
+    list.push_back({});
+    list.push_back({});
+    list.push_back({});
     
-//     auto it = list.begin() += 1;
-//     EXPECT_EQ(*it, 2);
-//     it += 2;
-//     EXPECT_EQ(*it, 4);
-//     it -= 1;
-//     EXPECT_EQ(*it, 3);
-// }
+    EXPECT_THROW(list.push_back({}), std::runtime_error);
 
-// TEST(list, range_based_for) {
-//     list<int> list = {1,2,3,4};
-//     EXPECT_EQ(list.size(), 4);
+    EXPECT_EQ(list.size(), 3);
 
-//     std::vector<int> expected;
-//     for(auto el : list) {
-//         expected.push_back(el);
-//     }
-//     std::vector actual = {1,2,3,4};
-//     EXPECT_EQ(expected, actual);
-// }
+    ObjectWithExceptions::cnt = 0;
+}
 
 // TEST(list, strong_exception_garantee_ctor) {
-//     list<ObjectWithExceptions> list(4);
+//     exp::list<ObjectWithExceptions> list(3);
+
+//     EXPECT_EQ(list.size(), 0);
+//     ObjectWithExceptions::cnt = 0;
+// }
+// TEST(list, strong_exception_garantee_init_ctor) {
+//     exp::list<ObjectWithExceptions> list = {{}, {}, {}};
+
+//     EXPECT_EQ(list.size(), 0);
+//     ObjectWithExceptions::cnt = 0;
 // }
 
 int main(int argc, char **argv) {

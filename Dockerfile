@@ -12,15 +12,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     lsb-release \
     software-properties-common \
     gnupg 
-# && wget https://apt.llvm.org/llvm.sh \
-# && chmod +x llvm.sh \
-# && ./llvm.sh 20
 
 RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
     && add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main" \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
-    # Install complete LLVM 20 toolchain
     clang-20 \
     clangd-20 \
     clang-tidy-20 \
@@ -50,10 +46,7 @@ RUN apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install the latest CMake from the official Kitware repository
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common \
-    lsb-release \
     && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - > /etc/apt/trusted.gpg.d/kitware.gpg \
     && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
     && apt-get update \
