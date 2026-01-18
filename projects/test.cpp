@@ -13,25 +13,36 @@ struct ObjectWithExceptions {
 
 TEST(list_iterator, ctor) {
     list<int>::Node node(42);
-    list<int>::list_iterator it(node.asBase());
+    list<int>::iterator it(node.asBase());
     EXPECT_EQ(*it, 42);
 }
 
 TEST(list_iterator, equality) {
     list<int>::Node node(42);
-    list<int>::list_iterator it(node.asBase());
-    list<int>::list_iterator it1(node.asBase());
+    list<int>::iterator it(node.asBase());
+    list<int>::iterator it1(node.asBase());
     
     EXPECT_EQ(it, it1);
     
     list<int>::Node node1(24);
-    list<int>::list_iterator it2(node1.asBase());
+    list<int>::iterator it2(node1.asBase());
     EXPECT_NE(it, it2);
+}
+
+TEST(list_iterator, const_nonconst) {
+    EXPECT_FALSE(std::is_const_v<list<int>::iterator::value_type>);
+    EXPECT_TRUE(std::is_const_v<list<int>::const_iterator::value_type>);
+
+    EXPECT_FALSE(std::is_const_v<std::remove_reference_t<list<int>::iterator::reference>>);
+    EXPECT_TRUE(std::is_const_v<std::remove_reference_t<list<int>::const_iterator::reference>>);
+
+    EXPECT_FALSE(std::is_const_v<list<int>::iterator::pointer>);
+    EXPECT_TRUE(std::is_const_v<list<int>::const_iterator::pointer>);
 }
 
 TEST(list, default_ctor) {
     list<int> list;
-//     EXPECT_EQ(list.begin(), list.end());
+    EXPECT_EQ(list.begin(), list.end());
     EXPECT_EQ(list.size(), 0);
 }
 
@@ -65,7 +76,7 @@ TEST(list, iter_increment_decrement) {
     list.push_back(2);
     list.push_back(3);
     list.push_back(4);
-    
+
     auto begin = list.begin();
     ++begin;
     EXPECT_EQ(*begin, 2);
@@ -79,6 +90,28 @@ TEST(list, iter_increment_decrement) {
     EXPECT_EQ(*begin, 2);
 }
 
+TEST(list, ostream_operator) {
+    list<int> list;
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    list.push_back(4);
+
+    std::stringstream ss;
+    for(auto& el : list) {
+        ss << el;
+    }
+    EXPECT_EQ(ss.str(), std::string("1234"));
+}
+
+TEST(list, n_ctor) {
+    list<int> list(3);
+    EXPECT_EQ(list.size(), 3);
+    EXPECT_EQ(*list.begin(), 0);
+}
+
+
+
 // TEST(list, pop_back) {
 //     list<int> list = {1,2,3,4};
 //     list.pop_back();
@@ -91,33 +124,10 @@ TEST(list, iter_increment_decrement) {
 //     EXPECT_EQ(*it, 3);
 // }
 
-// TEST(list, ctor) {
-//     list<int> list(2);
-//     EXPECT_EQ(list.size(), 2);
-
-//     EXPECT_EQ(*list.begin(), 0);
-// }
 
 // TEST(list, ctor_init_list) {
 //     list<int> list = {1,2,3,4};
 //     EXPECT_EQ(*list.begin(), 1);
-// }
-
-// TEST(list, iter_increment_decrement) {
-//     list<int> list = {1,2,3,4};
-//     EXPECT_EQ(list.size(), 4);
-
-//     auto begin = list.begin();
-//     ++begin;
-//     EXPECT_EQ(*begin, 2);
-//     ++begin;
-//     EXPECT_EQ(*begin, 3);
-//     ++begin;
-//     EXPECT_EQ(*begin, 4);
-//     --begin;
-//     EXPECT_EQ(*begin, 3);
-//     --begin;
-//     EXPECT_EQ(*begin, 2);
 // }
 
 // TEST(list, iter_add) {

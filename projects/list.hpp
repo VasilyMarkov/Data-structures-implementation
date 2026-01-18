@@ -15,8 +15,36 @@
 template<typename T>
 class list {
 public:
-	class list_iterator;
-	using iterator = list_iterator;
+    struct BaseNode;
+
+	// ============= Iterator ============= //
+	
+    template<bool isConst>
+    class list_iterator: public iterator_facade<list_iterator<isConst>, std::conditional_t<isConst, const T, T>, std::bidirectional_iterator_tag> {
+        using BaseType = iterator_facade<list_iterator<isConst>, std::conditional_t<isConst, const T, T>, std::bidirectional_iterator_tag>;
+        friend list;
+    public:
+        using value_type = std::conditional_t<isConst, const typename BaseType::value_type, typename BaseType::value_type>; 
+        using reference = std::conditional_t<isConst, const typename BaseType::reference, typename BaseType::reference>;
+        using pointer = std::conditional_t<isConst, const typename BaseType::pointer, typename BaseType::pointer>;
+        using iterator_category = typename BaseType::iterator_category;
+        using difference_type = typename BaseType::difference_type;
+
+        explicit list_iterator(BaseNode* node) noexcept: base_node_(node) {}
+        
+        reference dereference() noexcept { return static_cast<Node*>(base_node_)->value_; }
+        void increment() noexcept { base_node_ = base_node_->next_; }
+        void decrement() noexcept { base_node_ = base_node_->prev_; }
+
+        bool equal(const list_iterator& rhs) const noexcept { return base_node_ == rhs.base_node_; }
+    private:
+        BaseNode* base_node_ = nullptr;
+    };
+	
+	// ==================================== //
+
+	using iterator = list_iterator<false>;
+	using const_iterator = list_iterator<true>;
 
     struct BaseNode {
         BaseNode* next_ = nullptr;
@@ -39,32 +67,7 @@ public:
         T value_;
     };
 
-	// ============= Iterator ============= //
-	
-    class list_iterator: public iterator_facade<list_iterator, T, std::bidirectional_iterator_tag> {
-        using BaseType = iterator_facade<list_iterator, T, std::bidirectional_iterator_tag>;
-        friend list;
-    public:
-        using value_type = typename BaseType::value_type;
-        using reference = typename BaseType::reference;
-        using pointer = typename BaseType::pointer;
-        using iterator_category = typename BaseType::iterator_category;
-        using difference_type = typename BaseType::difference_type;
-
-        explicit list_iterator(BaseNode* node) noexcept: base_node_(node) {}
-        
-        reference dereference() noexcept { return static_cast<Node*>(base_node_)->value_; }
-        void increment() noexcept { base_node_ = base_node_->next_; }
-        void decrement() noexcept { base_node_ = base_node_->prev_; }
-
-        bool equal(const list_iterator& rhs) const noexcept { return base_node_ == rhs.base_node_; }
-    private:
-        BaseNode* base_node_ = nullptr;
-    };
-	
-	// ==================================== //
-	
-	list() {
+		list() {
 		begin_.next_ = &begin_;
 		begin_.prev_ = &begin_;
 	}
