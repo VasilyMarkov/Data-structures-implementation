@@ -149,34 +149,32 @@ public:
     const_iterator end() const noexcept { return cend(); }
     const_iterator cend() const noexcept { return const_iterator(&begin_); }
 
-    iterator insert(iterator pos, const T& val) { //insert before
-        
-        Node* new_node = new Node(val);
-        BaseNode* base = new_node->asBase();
+	iterator insert(iterator pos, const T& val) { //insert before
+		Node* new_node = new Node(val);
 
-        BaseNode* curr = pos.base_node_;
-        BaseNode* prev = curr->prev_;
+		return insertNodeImpl(pos, new_node);
+	}
 
-        base->next_ = curr;
-        base->prev_ = prev;
+	template<typename... Args>
+	iterator emplace(iterator pos, Args&&... args) {
+		Node* new_node = new Node(std::forward<Args>(args)...);
 
-        curr->prev_ = base;
-        if (prev) {
-            prev->next_ = base;
-        }
-        ++size_;
+		return insertNodeImpl(pos, new_node);
+	}
 
-        return iterator(base);
-    }
-	
 	size_t size() const noexcept { return size_; }
 
-	void push_back(const T& val) {
-		insert(end(), val);
-	}
-	void push_front(const T& val) {
-		insert(begin(), val);
-	}
+	void push_back(const T& val) { insert(end(), val); }
+	void push_back(T&& val) { insert(end(), std::move(val)); }
+
+	void push_front(const T& val) { insert(begin(), val); }
+	void push_front(T&& val) { insert(begin(), std::move(val)); }
+
+	template<typename... Args>
+	void emplace_back(Args&&... args) { emplace(end(), std::forward<Args>(args)...); }
+
+	template<typename... Args>
+	void emplace_front(Args&&... args) { emplace(begin(), std::forward<Args>(args)...); }
 
     void erase(iterator pos) noexcept {
         BaseNode* curr = pos.base_node_;
@@ -216,6 +214,28 @@ public:
     }
 
 private:
+	void linkNodeTo(BaseNode* new_node, BaseNode* curr) noexcept {
+		BaseNode* prev = curr->prev_;
+
+		new_node->next_ = curr;
+		new_node->prev_ = prev;
+
+		curr->prev_ = new_node;
+		if (prev) {
+			prev->next_ = new_node;
+		}
+	}
+
+	iterator insertNodeImpl(iterator pos, Node* node) noexcept {
+		BaseNode* new_base_node = node->asBase();
+
+		linkNodeTo(new_base_node, pos.base_node_);
+
+		++size_;
+
+		return iterator(new_base_node);
+	}
+
 	BaseNode begin_;
 	size_t size_{};
 };
