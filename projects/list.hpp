@@ -47,11 +47,38 @@ public:
 	private:
 		base_node_pointer base_node_ = nullptr;
 	};
+
+	template<bool isConst>
+	class reverse_list_iterator: public iterator_facade<list_iterator<isConst>, std::conditional_t<isConst, const T, T>, std::bidirectional_iterator_tag> {
+		using BaseType = iterator_facade<list_iterator<isConst>, std::conditional_t<isConst, const T, T>, std::bidirectional_iterator_tag>;
+		friend list;
+	public:
+		using value_type = std::conditional_t<isConst, const typename BaseType::value_type, typename BaseType::value_type>; 
+		using reference = std::conditional_t<isConst, const typename BaseType::reference, typename BaseType::reference>;
+		using pointer = std::conditional_t<isConst, const typename BaseType::pointer, typename BaseType::pointer>;
+		using iterator_category = typename BaseType::iterator_category;
+		using difference_type = typename BaseType::difference_type;
+
+		using base_node_pointer = std::conditional_t<isConst, const BaseNode*, BaseNode*>;
+		using node_pointer = std::conditional_t<isConst, const Node*, Node*>;
+
+		explicit reverse_list_iterator(base_node_pointer node) noexcept: base_node_(node) {}
+		
+		reference dereference() noexcept { return static_cast<node_pointer>(base_node_)->value_; }
+		void increment() noexcept { base_node_ = base_node_->prev_; }
+		void decrement() noexcept { base_node_ = base_node_->next_; }
+
+		bool equal(const reverse_list_iterator& rhs) const noexcept { return base_node_ == rhs.base_node_; }
+	private:
+		base_node_pointer base_node_ = nullptr;
+	};
 	
 	// ==================================== //
 
 	using iterator = list_iterator<false>;
 	using const_iterator = list_iterator<true>;
+	using reverse_iterator = reverse_list_iterator<false>;
+	using const_reverse_iterator = reverse_list_iterator<true>;
 
 	struct BaseNode {
 		BaseNode* next_ = nullptr;
@@ -76,6 +103,22 @@ public:
 	private:
 		T value_;
 	};
+
+	iterator begin() noexcept { return iterator(begin_.next_); }
+	const_iterator begin() const noexcept { return cbegin(); }
+	const_iterator cbegin() const noexcept { return const_iterator(begin_.next_); }
+	
+	iterator end() noexcept { return iterator(&begin_); }
+	const_iterator end() const noexcept { return cend(); }
+	const_iterator cend() const noexcept { return const_iterator(&begin_); }
+	
+	reverse_iterator rbegin() noexcept { return iterator(begin_.next_); }
+	const_reverse_iterator rbegin() const noexcept { return crbegin(); }
+	const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(); }
+	
+	reverse_iterator rend() noexcept { return end(); }
+	const_reverse_iterator rend() const noexcept { return crend(); }
+	const_reverse_iterator crend() const noexcept { return const_reverse_iterator(); }
 
 	list() {
 		begin_.next_ = &begin_;
@@ -153,14 +196,6 @@ public:
 			delete curr_node;
 		}
 	}
-	
-	iterator begin() noexcept { return iterator(begin_.next_); }
-	const_iterator begin() const noexcept { return cbegin(); }
-	const_iterator cbegin() const noexcept { return const_iterator(begin_.next_); }
-
-	iterator end() noexcept { return iterator(&begin_); }
-	const_iterator end() const noexcept { return cend(); }
-	const_iterator cend() const noexcept { return const_iterator(&begin_); }
 
 	iterator insert(iterator pos, const T& val) { //insert before
 		Node* new_node = new Node(val);

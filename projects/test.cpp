@@ -230,20 +230,21 @@ TEST(list, it_ctor) {
     EXPECT_EQ(list, list1);
 }
 
-// TEST(list, copy_ctor) {
-//     exp::list list {1,2,3,4};
+TEST(list, copy_ctor) {
+    exp::list list {1,2,3,4};
 
-//     auto list1 = list;
+    auto list1 = list;
 
-//     EXPECT_EQ(list, list1);
-// }
+    EXPECT_EQ(list, list1);
+}
 
 // TEST(list, move_ctor) {
 //     exp::list list {1,2,3,4};
+//     exp::list ref_list {1,2,3,4};
 
 //     auto list1 = std::move(list);
 
-//     EXPECT_EQ(list, list1);
+//     EXPECT_EQ(list1, ref_list);
 // }
 
 
