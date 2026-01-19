@@ -119,6 +119,18 @@ public:
         }
 	}
 
+    template<std::input_iterator It>
+    list(It begin, It end): list() { //TODO write list unwind for strong exception garantee
+        while(begin != end) {
+            push_back(*begin);
+            ++begin;
+        }
+    }
+
+    list(const list& other): list(other.begin(), other.end()) {}
+
+    list(list&& other) noexcept: list(), begin_(other.begin_) {}
+
 	~list() {
         auto it = begin();
         auto end_it = end();
@@ -207,5 +219,11 @@ private:
 	BaseNode begin_;
 	size_t size_{};
 };
+
+template<typename T>
+list(std::initializer_list<T>) -> list<T>;
+
+template<std::input_iterator It>
+list(It, It) -> list<typename std::iterator_traits<It>::value_type>;
 
 } // namespace exp

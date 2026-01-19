@@ -221,6 +221,33 @@ TEST(list, strong_exception_garantee_push_back) {
 //     ObjectWithExceptions::cnt = 0;
 // }
 
+TEST(list, it_ctor) {
+    std::vector vec {1,2,3,4};
+
+    exp::list list(vec.begin(), vec.end());
+
+    exp::list list1 {1,2,3,4};
+    EXPECT_EQ(list, list1);
+}
+
+// TEST(list, copy_ctor) {
+//     exp::list list {1,2,3,4};
+
+//     auto list1 = list;
+
+//     EXPECT_EQ(list, list1);
+// }
+
+// TEST(list, move_ctor) {
+//     exp::list list {1,2,3,4};
+
+//     auto list1 = std::move(list);
+
+//     EXPECT_EQ(list, list1);
+// }
+
+
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
