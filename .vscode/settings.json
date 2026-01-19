@@ -1,15 +1,15 @@
 {
-    "C_Cpp.intelliSenseEngine": "default",
+    "C_Cpp.intelliSenseEngine": "disabled",
     "clangd.path": "/usr/bin/clangd",
     "clangd.arguments": [
         "-log=verbose",
         "-pretty",
-        "compile-commands-dir=${workspaceFolder}",
-        "--query-driver=/usr/bin/clang",
+        "--compile-commands-dir=${workspaceFolder}/projects/debug/",
         "--all-scopes-completion",
         "--completion-style=detailed",
         "--background-index",
         "--clang-tidy",
         "--header-insertion=never"
-    ]
+    ],
+    "editor.inlayHints.enabled": "off"
 }

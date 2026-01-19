@@ -1,1 +1,1 @@
-docker build -t my-cpp-env . 
+docker build -t cpp-env-container . 

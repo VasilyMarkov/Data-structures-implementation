@@ -1,4 +1,4 @@
-BUILD_DIR=build
+BUILD_DIR=debug
 if [ -d $BUILD_DIR ]; then
   $BUILD_DIR/test $1
 else

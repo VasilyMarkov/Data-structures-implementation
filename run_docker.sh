@@ -1,1 +1,1 @@
-docker run --name my-cpp-container -it -v $HOME/usr/C++:/C++ my-cpp-env
+docker run --name cpp-env-container -it -v ./projects:/projects cpp-env-container

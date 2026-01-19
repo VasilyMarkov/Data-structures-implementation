@@ -1,15 +1,21 @@
 {
-    "name": "C++ Clangd Dev Environment",
+    "name": "C++ Dev Environment",
     "build": {
         "dockerfile": "Dockerfile"
     },
     "customizations": {
         "vscode": {
             "extensions": [
+                "ms-vscode.cpptools",
                 "llvm-vs-code-extensions.vscode-clangd",
-                "ms-vscode.cmake-tools"
+                "mhutchie.git-graph",
+                "twxs.cmake"
             ]
         }
     },
+    "runArgs": [
+        "--name", "cpp-env-container",
+        "-v", "./projects:/projects"
+    ],
     "remoteUser": "root"
 }
