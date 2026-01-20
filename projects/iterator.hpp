@@ -27,17 +27,29 @@ public:
     using iterator_category = Category;
     using difference_type = DiffT;
 
-    reference operator*() { return asDerived().dereference(); }
+    reference operator*() const { return asDerived().dereference(); }
     pointer operator->() { return std::addressof(asDerived().dereference()); }
 
     Derived& operator++() { asDerived().increment(); return asDerived(); }
+
+    Derived operator++(int) {
+        auto tmp = asDerived();
+        asDerived().increment();
+        return tmp;
+    }
+
     Derived& operator--() { asDerived().decrement(); return asDerived(); }
+
+    Derived operator--(int) {
+        auto tmp = asDerived();
+        asDerived().decrement();
+        return tmp;
+    }
 
     Derived& operator+=(difference_type n) { std::advance(asDerived(), n); return asDerived(); }
     Derived& operator-=(difference_type n) { std::advance(asDerived(), -n); return asDerived(); }
 
-    friend bool operator==(const iterator_facade& lhs, const iterator_facade& rhs)
-    {
+    friend bool operator==(const iterator_facade& lhs, const iterator_facade& rhs) {
         return lhs.asDerived().equal(rhs.asDerived());
     }
 
