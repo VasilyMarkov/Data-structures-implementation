@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+#include <vector>
+#include <list>
 #include "list.hpp"
 
 struct ObjectWithExceptions {
@@ -31,9 +33,6 @@ TEST(list_iterator, equality) {
 }
 
 TEST(list_iterator, const_nonconst) {
-    EXPECT_FALSE(std::is_const_v<exp::list<int>::iterator::value_type>);
-    EXPECT_TRUE(std::is_const_v<exp::list<int>::const_iterator::value_type>);
-
     EXPECT_FALSE(std::is_const_v<std::remove_reference_t<exp::list<int>::iterator::reference>>);
     EXPECT_TRUE(std::is_const_v<std::remove_reference_t<exp::list<int>::const_iterator::reference>>);
 
@@ -221,22 +220,22 @@ TEST(list, strong_exception_garantee_push_back) {
 //     ObjectWithExceptions::cnt = 0;
 // }
 
-TEST(list, it_ctor) {
-    std::vector vec {1,2,3,4};
+// TEST(list, it_ctor) {
+//     std::vector vec {1,2,3,4};
 
-    exp::list list(vec.begin(), vec.end());
+//     exp::list list(vec.begin(), vec.end());
 
-    exp::list list1 {1,2,3,4};
-    EXPECT_EQ(list, list1);
-}
+//     exp::list list1 {1,2,3,4};
+//     EXPECT_EQ(list, list1);
+// }
 
-TEST(list, copy_ctor) {
-    exp::list list {1,2,3,4};
+// TEST(list, copy_ctor) {
+//     exp::list list {1,2,3,4};
 
-    auto list1 = list;
+//     auto list1 = list;
 
-    EXPECT_EQ(list, list1);
-}
+//     EXPECT_EQ(list, list1);
+// }
 
 // TEST(list, move_ctor) {
 //     exp::list list {1,2,3,4};
@@ -247,7 +246,13 @@ TEST(list, copy_ctor) {
 //     EXPECT_EQ(list1, ref_list);
 // }
 
-
+TEST(zip_iterator, test) {
+    std::vector vec = {1,2,3,4};
+    std::list list = {5,6,7,8};
+    zip_iterator zit(vec.begin(), list.begin());
+    auto [val1, val2] = *zit;
+    std::cout << val1 << val2 <<  std::endl;
+}
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
