@@ -6,10 +6,9 @@
 
 #pragma once 
 
-#include <cstddef>
-#include <memory>
 #include <type_traits>
 #include <iterator>
+#include <iostream>
 
 template<
 	typename Derived,
@@ -59,20 +58,59 @@ public:
     const Derived& asDerived() const { return *static_cast<const Derived*>(this); }
 };
 
-// namespace exp {
+template<typename T>
+void print_ref_category(T&&) {
+    if constexpr (std::is_const_v<std::remove_reference_t<T>>) {
+        std::cout << "const ";
+    }
+    if constexpr(std::is_lvalue_reference_v<T>) {
+        std::cout << "&";
+    } else {
+        std::cout << "&&";
+    }
+    std::cout << std::endl;
+}
 
 template<typename... Its>
-class zip_iterator: public iterator_facade<zip_iterator<Its...>, std::tuple<Its...>, std::forward_iterator_tag> {
-    using BaseType = iterator_facade<zip_iterator<Its...>, std::tuple<Its...>, std::forward_iterator_tag>;
+using common_it_tag = std::common_type_t<typename std::iterator_traits<Its>::iterator_category...>;
+
+template<typename... Its>
+class zip_iterator: public iterator_facade<
+    zip_iterator<Its...>,
+    std::tuple<typename std::iterator_traits<std::remove_cvref_t<Its>>::value_type...>,
+    common_it_tag<std::remove_cvref_t<Its>...>,
+    std::tuple<typename std::iterator_traits<std::remove_cvref_t<Its>>::reference...>>
+{
+
+    template<class Reference> //https://quuxplusone.github.io/blog/2019/02/06/arrow-proxy/
+    struct arrow_proxy {
+        Reference r;
+        Reference *operator->() {
+            return &r;
+        }
+    };
+
+    using BaseType = iterator_facade<
+        zip_iterator<Its...>, 
+        std::tuple<typename std::iterator_traits<std::remove_cvref_t<Its>>::value_type...>, 
+        common_it_tag<std::remove_cvref_t<Its>...>,
+        std::tuple<typename std::iterator_traits<std::remove_cvref_t<Its>>::reference...>
+    >;
 public:
+    using value_type = typename BaseType::value_type;
     using reference = typename BaseType::reference;
-    using value_type = std::tuple<typename std::iterator_traits<Its>::reference...>;
+    using iterator_category = common_it_tag<std::remove_cvref_t<Its>...>;
+    using difference_type = typename BaseType::difference_type;
+    using pointer = arrow_proxy<reference>;
+
+    constexpr zip_iterator(Its... args): iterators_(args...) {}
     
-    template<typename... Args>
-    zip_iterator(Args&&... args): iterators_(std::forward_as_tuple(args...)) {}
+    reference dereference() const noexcept { return std::apply([](auto&... its){ return reference(*its...); }, iterators_); }
     
-    decltype(auto) dereference() const noexcept { return std::apply([](auto&&... its){ return std::make_tuple((*its)...); }, iterators_); }
-    
+    void increment() { std::apply([](auto&... its){ (++its, ...); }, iterators_); };
+
+    bool equal(const zip_iterator& zit) const noexcept { return std::get<0>(zit.iterators_) == std::get<0>(iterators_); };
+
 private:
     std::tuple<Its...> iterators_;
 };
@@ -81,5 +119,3 @@ template<typename... Ranges>
 class zip_range {
     
 };
-
-// } //namespace exp
