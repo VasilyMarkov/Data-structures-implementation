@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <iterator>
 #include <iostream>
+#include "type_traits.hpp"
 
 template<
 	typename Derived,
@@ -72,9 +73,6 @@ void print_ref_category(T&&) {
 }
 
 template<typename... Its>
-using common_it_tag = std::common_type_t<typename std::iterator_traits<Its>::iterator_category...>;
-
-template<typename... Its>
 class zip_iterator: public iterator_facade<
     zip_iterator<Its...>,
     std::tuple<typename std::iterator_traits<std::remove_cvref_t<Its>>::value_type...>,
@@ -119,7 +117,11 @@ private:
 template<typename... Ranges>
 class zip_range {
 public:
+    using value_type = std::tuple<value_type_of_t<Ranges>...>;
+    using reference = value_type&;
+    using pointer = value_type*;
     using iterator = zip_iterator<decltype(std::begin(std::declval<Ranges&>()))...>;
+    using difference_type = std::ptrdiff_t;
 
     template<typename... Args>
     zip_range(Args&&... args): ranges_(std::forward_as_tuple(args...)) {}

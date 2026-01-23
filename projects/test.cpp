@@ -314,12 +314,22 @@ TEST(zip_range, ctor) {
     int raw_arr[4] = {10,20,30,40};
     std::vector<bool> bvec = {true, false, true, false};
 
+TEST(zip_range, ctor) {
     auto [a,b,c,d] = *make_zip_range(vec, list, raw_arr, bvec).begin();
     EXPECT_EQ(a, 1);
     EXPECT_EQ(b, 5);
     EXPECT_EQ(c, 10);
     EXPECT_EQ(d, true);
 }
+
+TEST(zip_range, range_base_loop) {
+    std::stringstream ss;
+    for(const auto& [a,b,c,d] : make_zip_range(vec, list, raw_arr, bvec)) {
+        ss << a << b << c << d;
+    }
+    EXPECT_EQ(ss.str(), "15101262003730148400");
+}
+
 
 
 int main(int argc, char **argv) {
