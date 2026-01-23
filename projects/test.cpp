@@ -246,13 +246,53 @@ TEST(list, strong_exception_garantee_push_back) {
 //     EXPECT_EQ(list1, ref_list);
 // }
 
-TEST(zip_iterator, test) {
+TEST(zip_iterator, ctor_and_deref) {
     std::vector vec = {1,2,3,4};
     std::list list = {5,6,7,8};
-    zip_iterator zit(vec.begin(), list.begin());
-    auto [val1, val2] = *zit;
-    std::cout << val1 << val2 <<  std::endl;
+    const std::vector cvec = {0,2,4,6};
+    std::vector<bool> bvec = {true, false, false, true};
+
+    auto it1 = vec.begin();
+    const auto it2 = list.begin();
+    
+    auto zit = zip_iterator(it1, it2, cvec.begin(), bvec.begin());
+    auto [val1, val2, val3, val4] = *zit;
+    EXPECT_EQ(val1, 1);
+    EXPECT_EQ(val2, 5);
+    EXPECT_EQ(val3, 0);
+    EXPECT_TRUE(val4);
 }
+
+TEST(zip_iterator, increment) {
+    std::vector vec = {1,2,3,4};
+    std::list list = {5,6,7,8};
+
+    auto zit = zip_iterator(vec.begin(), list.begin());
+++zit;
+    auto [val1, val2] = *zit;
+    EXPECT_EQ(val1, 2);
+    EXPECT_EQ(val2, 6);
+    zit++;
+    auto [val3, val4] = *zit;
+    EXPECT_EQ(val3, 3);
+    EXPECT_EQ(val4, 7);
+}
+
+TEST(zip_iterator, equal) {
+    std::vector vec = {1,2,3,4};
+    std::list list = {5,6,7,8};
+    
+    auto zit = zip_iterator(vec.begin(), list.begin());
+    auto zit2 = zip_iterator(vec.begin(), list.begin());
+    auto zit1 = zip_iterator(vec.end(), list.end());
+    
+    ++zit2;
+
+    EXPECT_EQ(zit, zit);
+    EXPECT_NE(zit, zit1);
+    EXPECT_NE(zit, zit2);
+}
+
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
