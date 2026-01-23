@@ -278,6 +278,21 @@ TEST(zip_iterator, increment) {
     EXPECT_EQ(val4, 7);
 }
 
+TEST(zip_iterator, decrement) {
+    std::vector vec = {1,2,3,4};
+    std::list list = {5,6,7,8};
+    
+    auto zit = zip_iterator(vec.end(), list.end());
+    --zit;
+    auto [val1, val2] = *zit;
+    EXPECT_EQ(val1, 4);
+    EXPECT_EQ(val2, 8);
+    zit--;
+    auto [val3, val4] = *zit;
+    EXPECT_EQ(val3, 3);
+    EXPECT_EQ(val4, 7);
+}
+
 TEST(zip_iterator, equal) {
     std::vector vec = {1,2,3,4};
     std::list list = {5,6,7,8};
@@ -291,6 +306,19 @@ TEST(zip_iterator, equal) {
     EXPECT_EQ(zit, zit);
     EXPECT_NE(zit, zit1);
     EXPECT_NE(zit, zit2);
+}
+
+TEST(zip_range, ctor) {
+    std::vector vec = {1,2,3,4};
+    std::list list = {5,6,7,8};
+    int raw_arr[4] = {10,20,30,40};
+    std::vector<bool> bvec = {true, false, true, false};
+
+    auto [a,b,c,d] = *make_zip_range(vec, list, raw_arr, bvec).begin();
+    EXPECT_EQ(a, 1);
+    EXPECT_EQ(b, 5);
+    EXPECT_EQ(c, 10);
+    EXPECT_EQ(d, true);
 }
 
 

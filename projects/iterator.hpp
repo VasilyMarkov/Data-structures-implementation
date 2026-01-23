@@ -108,6 +108,7 @@ public:
     reference dereference() const noexcept { return std::apply([](auto&... its){ return reference(*its...); }, iterators_); }
     
     void increment() { std::apply([](auto&... its){ (++its, ...); }, iterators_); };
+    void decrement() { std::apply([](auto&... its){ (--its, ...); }, iterators_); };
 
     bool equal(const zip_iterator& zit) const noexcept { return std::get<0>(zit.iterators_) == std::get<0>(iterators_); };
 
@@ -117,5 +118,19 @@ private:
 
 template<typename... Ranges>
 class zip_range {
-    
+public:
+    using iterator = zip_iterator<decltype(std::begin(std::declval<Ranges&>()))...>;
+
+    template<typename... Args>
+    zip_range(Args&&... args): ranges_(std::forward_as_tuple(args...)) {}
+
+    iterator begin() { return std::apply([](auto&&... ranges){ return iterator(std::begin(ranges)...); }, ranges_); }
+    iterator end() { return std::apply([](auto&&... ranges){ return iterator(std::end(ranges)...); }, ranges_); }
+private:
+    std::tuple<Ranges...> ranges_;
 };
+
+template<typename... Ranges>
+auto make_zip_range(Ranges&&... ranges) {
+    return zip_range<Ranges...>(std::forward<Ranges>(ranges)...); 
+}
