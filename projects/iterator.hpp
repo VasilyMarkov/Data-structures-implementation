@@ -10,7 +10,6 @@
 #include <iterator>
 #include <iostream>
 #include "type_traits.hpp"
-#include <functional>
 
 template<
 	typename Derived,
@@ -80,15 +79,6 @@ class zip_iterator: public iterator_facade<
     common_it_tag<std::remove_cvref_t<Its>...>,
     std::tuple<typename std::iterator_traits<std::remove_cvref_t<Its>>::reference...>>
 {
-
-    template<class Reference> //https://quuxplusone.github.io/blog/2019/02/06/arrow-proxy/
-    struct arrow_proxy {
-        Reference r;
-        Reference *operator->() {
-            return &r;
-        }
-    };
-
     using BaseType = iterator_facade<
         zip_iterator<Its...>, 
         std::tuple<typename std::iterator_traits<std::remove_cvref_t<Its>>::value_type...>, 
@@ -100,16 +90,23 @@ public:
     using reference = typename BaseType::reference;
     using iterator_category = common_it_tag<std::remove_cvref_t<Its>...>;
     using difference_type = typename BaseType::difference_type;
-    using pointer = arrow_proxy<reference>;
+    using pointer = void;
 
     constexpr zip_iterator(Its... args): iterators_(args...) {}
     
-    reference dereference() const noexcept { return std::apply([](auto&... its){ return reference(*its...); }, iterators_); }
+    reference dereference() const noexcept { 
+        return std::apply([](auto&... its){ return reference(*its...); }, iterators_); 
+    }
     
     void increment() { std::apply([](auto&... its){ (++its, ...); }, iterators_); };
     void decrement() { std::apply([](auto&... its){ (--its, ...); }, iterators_); };
 
-    bool equal(const zip_iterator& zit) const noexcept { return std::get<0>(zit.iterators_) == std::get<0>(iterators_); };
+    bool equal(const zip_iterator& other) const noexcept { 
+        auto impl = [this, &other]<std::size_t... I>(std::index_sequence<I...>){
+            return ((std::get<I>(other.iterators_) == std::get<I>(iterators_)) && ...);
+        };
+        return impl(std::make_index_sequence<sizeof...(Its)>{}); 
+    };
 
 private:
     std::tuple<Its...> iterators_;
@@ -136,9 +133,9 @@ public:
 private:
 
     constexpr bool is_equal_sizes() const {
-        return std::invoke([this]<std::size_t... I>(std::index_sequence<I...>){
+        return [this]<std::size_t... I>(std::index_sequence<I...>){
             return ((std::size(std::get<I>(ranges_)) == std::size(std::get<I+1>(ranges_))) && ...);
-        }, std::make_index_sequence<sizeof...(Ranges) - 1>{});
+        }(std::make_index_sequence<sizeof...(Ranges) - 1>{});
     }
 
     std::tuple<Ranges...> ranges_;
