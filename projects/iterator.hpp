@@ -10,6 +10,7 @@
 #include <iterator>
 #include <iostream>
 #include "type_traits.hpp"
+#include <functional>
 
 template<
 	typename Derived,
@@ -124,11 +125,22 @@ public:
     using difference_type = std::ptrdiff_t;
 
     template<typename... Args>
-    zip_range(Args&&... args): ranges_(std::forward_as_tuple(args...)) {}
+    zip_range(Args&&... args): ranges_(std::forward<Args>(args)...) {
+        if(!is_equal_sizes()) {
+            throw std::runtime_error("Trying to create zip_range with ranges based on different sizes");
+        }
+     }
 
     iterator begin() { return std::apply([](auto&&... ranges){ return iterator(std::begin(ranges)...); }, ranges_); }
     iterator end() { return std::apply([](auto&&... ranges){ return iterator(std::end(ranges)...); }, ranges_); }
 private:
+
+    constexpr bool is_equal_sizes() const {
+        return std::invoke([this]<std::size_t... I>(std::index_sequence<I...>){
+            return ((std::size(std::get<I>(ranges_)) == std::size(std::get<I+1>(ranges_))) && ...);
+        }, std::make_index_sequence<sizeof...(Ranges) - 1>{});
+    }
+
     std::tuple<Ranges...> ranges_;
 };
 
