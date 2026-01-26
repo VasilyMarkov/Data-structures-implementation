@@ -75,9 +75,9 @@ void print_ref_category(T&&) {
 template<typename... Its>
 class zip_iterator: public iterator_facade<
     zip_iterator<Its...>,
-    std::tuple<typename std::iterator_traits<std::remove_cvref_t<Its>>::value_type...>,
+    std::tuple<std::iter_reference_t<Its>...>,
     common_it_tag<std::remove_cvref_t<Its>...>,
-    std::tuple<typename std::iterator_traits<std::remove_cvref_t<Its>>::reference...>>
+    std::tuple<std::iter_value_t<Its>...>>
 {
     using BaseType = iterator_facade<
         zip_iterator<Its...>, 
@@ -105,7 +105,7 @@ public:
         auto impl = [this, &other]<std::size_t... I>(std::index_sequence<I...>){
             return ((std::get<I>(other.iterators_) == std::get<I>(iterators_)) && ...);
         };
-        return impl(std::make_index_sequence<sizeof...(Its)>{}); 
+        return impl(std::index_sequence_for<Its...>{}); 
     };
 
 private:
