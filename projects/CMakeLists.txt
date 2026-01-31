@@ -5,6 +5,7 @@ find_package(GTest REQUIRED)
 message(STATUS "GoogleTest version: ${GTest_VERSION}")
 
 add_executable(test test.cpp)
+add_executable(concurrency concurrency.cpp)
 
 target_include_directories(test PRIVATE
 	${CMAKE_SOURCE_DIR}
