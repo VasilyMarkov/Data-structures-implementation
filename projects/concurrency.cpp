@@ -2,26 +2,25 @@
 #include <thread>
 #include <mutex>
 #include <vector>
+#include <atomic>
+#include <queue>
+#include <random>
+#include "details.hpp"
 
-std::mutex mutex;
-int shared_counter = 0;
 
-void increment(int iterations) {
-    for(int i = 0; i < iterations; ++i) {
-        ++shared_counter;
-    }
-}
+std::vector<int> makeRandomVector(size_t size) {
+    std::random_device rnd_device;
+    std::mt19937 mersenne_engine {rnd_device()};
+    std::uniform_int_distribution<int> dist {1, static_cast<int>(size)};
 
-void decrement(int iterations) {
-    for(int i = 0; i < iterations; ++i) {
-        --shared_counter;
-    }
+    auto random_gen = [&](){return dist(mersenne_engine);};
+    std::vector<int> ret(size);
+    std::generate(std::begin(ret), std::end(ret), random_gen);
+    return ret;
 }
 
 int main() {
-    std::jthread t1(increment, 1000);
-    std::jthread t2(decrement, 1000);
-    std::cout << shared_counter << std::endl;
-    t1.join();
-    t2.join();
+    auto random_vector = makeRandomVector(10);
+
+    details::print(random_vector);
 }
