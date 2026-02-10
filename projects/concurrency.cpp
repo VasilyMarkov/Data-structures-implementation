@@ -6,7 +6,7 @@
 #include <queue>
 #include <random>
 #include "details.hpp"
-
+#include <numeric>
 
 std::vector<int> makeRandomVector(size_t size) {
     std::random_device rnd_device;
@@ -20,7 +20,13 @@ std::vector<int> makeRandomVector(size_t size) {
 }
 
 int main() {
-    auto random_vector = makeRandomVector(10);
+    auto random_vector = makeRandomVector(1e8);
+    
+    auto mean_proc = [](const std::vector<int>& vec) {
+        return std::accumulate(std::begin(vec), std::end(vec), 0.0) / vec.size();
+    };
 
-    details::print(random_vector);
+    auto res = details::time_execution(mean_proc, random_vector);
+
+    std::cout << res << std::endl;
 }

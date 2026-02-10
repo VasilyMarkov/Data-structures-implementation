@@ -30,7 +30,7 @@ decltype(auto) time_execution(Callable&& function, Args&&... args) noexcept(std:
     using clock = std::chrono::high_resolution_clock;
     Defer timeit([start = clock::now()](){
         try {
-            std::printf("Execution time is %d seconds", std::chrono::duration<double>(clock::now() - start).count());
+            std::cout << "Execution time is " <<  std::chrono::duration<double>(clock::now() - start).count() << " seconds" << std::endl;
         } catch(const std::exception& e) {
             std::cout << e.what() << std::endl;
         }
